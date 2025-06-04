@@ -1,7 +1,10 @@
 ﻿using OpenTK.Graphics.OpenGL4;
+using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using SimpleGameEngine.Commons;
+using SimpleGameEngine.UiElements;
 
 namespace SimpleGameEngine;
 
@@ -11,76 +14,97 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
 {
     private int _vertexBufferObject;
     private int _vertexArrayObject;
-    private Shader _shader;
+    
+    private List<float> _vertices = new List<float>();  // note every adding should contain 7 values: x, y, r, g, b, a
+    private List<uint> _indices = new List<uint>();
+    
+    public static List<UiElement> UiElements = new List<UiElement>();
+    
+    private static class Shaders
+    {
+        public static readonly Shader Base = 
+            new Shader("Shaders/baseShader.vert", "Shaders/baseShader.frag");
+    }
     
     protected override void OnLoad()
     {
         base.OnLoad();
         
-        GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        GL.ClearColor(EngineSettings.BackgroundColor);
+        GL.Enable(EnableCap.Blend);
+        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         
         _vertexBufferObject = GL.GenBuffer();
         
-        float[] vertices = {
-            0.5f,  0.5f, 0.0f,  // top right
-            0.5f, -0.5f, 0.0f,  // bottom right
-            -0.5f, -0.5f, 0.0f,  // bottom left
-            -0.5f,  0.5f, 0.0f   // top left
-        };
-        
-        uint[] indices = {  // note that we start from 0!
-            0, 1, 3,   // first triangle
-            1, 2, 3    // second triangle
-        };
-        
         GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
-        GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
         
         _vertexArrayObject = GL.GenVertexArray();
         GL.BindVertexArray(_vertexArrayObject);
         
-        int ElementBufferObject = GL.GenBuffer();
-        GL.BindBuffer(BufferTarget.ElementArrayBuffer, ElementBufferObject);
-        GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, BufferUsageHint.StaticDraw);
+        int elementBufferObject = GL.GenBuffer();
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, elementBufferObject);
         
-        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
         GL.EnableVertexAttribArray(0);
-        
-        _shader = new Shader("Shaders/baseShader.vert", "Shaders/baseShader.frag");
-        _shader.Use();
-    }
 
+        GL.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, 6 * sizeof(float), 2 * sizeof(float));
+        GL.EnableVertexAttribArray(1);
+    }
     
     protected override void OnUpdateFrame(FrameEventArgs args)
     {
         base.OnUpdateFrame(args);
         
-        //Console.WriteLine(1 / UpdateTime);  // fps meter
+        if (EngineSettings.ShowFps)
+            Console.WriteLine(1 / UpdateTime);  // fps meter TODO: rebase output into window instead of console
         
-        if (KeyboardState.IsKeyDown(Keys.Escape))
-        {
-            Close();
-        }
+        
+        // if (KeyboardState.IsKeyDown(Keys.Escape))
+        // {
+        //     Close();
+        // }
     }
-
-    private double timeValue;
+    
     
     protected override void OnRenderFrame(FrameEventArgs e)
     {
         base.OnRenderFrame(e);
+        
+        _vertices.Clear(); _indices.Clear();
+        uint baseIndex;
+        foreach (var element in UiElements)
+        {
+            baseIndex = (uint)_vertices.Count / 6;
+            
+            for (byte i = 0; i < 4; i++)
+            {
+                if (element.BackgroundType == Background.Color)
+                {
+                    _vertices.AddRange([element.Position[i, 0], element.Position[i, 1],
+                        element.Colors[0, 0], element.Colors[0, 1], element.Colors[0, 2], element.Colors[0, 3]]);
+                }
+                else if (element.BackgroundType == Background.Gradient)
+                {
+                    _vertices.AddRange([element.Position[i, 0], element.Position[i, 1],
+                        element.Colors[i, 0], element.Colors[i, 1], element.Colors[i, 2], element.Colors[i, 3]]);
+                }
+            }
+            
+            _indices.AddRange([baseIndex, baseIndex + 1, baseIndex + 3, 
+                baseIndex + 1, baseIndex + 2, baseIndex + 3]);
+        }
 
         GL.Clear(ClearBufferMask.ColorBufferBit);
         
-        _shader.Use();
+        Shaders.Base.Use();
         
-        
-        timeValue += UpdateTime;
-        float greenValue = (float)Math.Sin(timeValue) / 2.0f + 0.5f;
-        int vertexColorLocation = GL.GetUniformLocation(_shader.Handle, "ourColor");
-        GL.Uniform4(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-        
+        GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Count * sizeof(float), _vertices.ToArray(), 
+            BufferUsageHint.DynamicDraw);
         GL.BindVertexArray(_vertexArrayObject);
-        GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0);
+        GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Count * sizeof(uint), _indices.ToArray(),
+            BufferUsageHint.DynamicDraw);
+
+        GL.DrawElements(PrimitiveType.Triangles, _indices.Count, DrawElementsType.UnsignedInt, 0);
 
         SwapBuffers();
     }
@@ -98,6 +122,6 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
     {
         base.OnUnload();
         
-        _shader.Dispose();
+        Shaders.Base.Dispose();
     }
 }
