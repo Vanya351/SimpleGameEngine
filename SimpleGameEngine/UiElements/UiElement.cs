@@ -4,19 +4,9 @@ using SimpleGameEngine.Commons;
 
 namespace SimpleGameEngine.UiElements;
 
-public abstract class UiElement
+public abstract class UiElement : GameObjectPrototype
 {
-    private float[,] _position = new float[4, 2];
-    public float[,] Position => _position;
-    
-    private float[,] _colors = new float[4, 4];
-    public float[,] Colors => _colors;
-
-    private Background _backgroundType;
-    public Background BackgroundType => _backgroundType;
-    
-    private bool _visible;
-    public bool Visible
+    public override bool Visible
     {
         get => _visible;
 
@@ -35,8 +25,7 @@ public abstract class UiElement
         }
     }
     
-    private float _zIndex;
-    public float ZIndex
+    public override float ZIndex
     {
         get => _zIndex;
         
@@ -58,13 +47,8 @@ public abstract class UiElement
     /// <param name="visible">visibility of element</param>
     /// <param name="zIndex">element height index</param>
     public UiElement(float[] position, Anchor anchor, float[] size, Color4 backgroundColor, bool visible = true, float zIndex = 0)
-    {
-        Place(position, anchor, size);
-        Colorize(backgroundColor);
-        
-        Visible = visible;
-        ZIndex = zIndex;
-    }
+        : base(position, anchor, size, backgroundColor, visible) { }
+
     
     /// <summary>
     /// Creates an ui element with gradient background
@@ -76,20 +60,14 @@ public abstract class UiElement
     /// <param name="visible">visibility of element</param>
     /// <param name="zIndex">element height index</param>
     public UiElement(float[] position, Anchor anchor, float[] size, Color4[] gradient, bool visible = true, float zIndex = 0)
-    {
-        Place(position, anchor, size);
-        Colorize(gradient);
-        
-        Visible = visible;
-        ZIndex = zIndex;
-    }
+        : base(position, anchor, size, gradient, visible) { }
     
     /// <summary>
     /// places element in new position
     /// </summary>
     /// <param name="position">placement coordinates</param>
     /// <param name="anchor">placement anchor</param>
-    public void Place(float[] position, Anchor anchor)
+    public override void Place(float[] position, Anchor anchor)
     {
         float xMax = _position[0, 0], yMax = _position[0, 1], xMin = _position[0, 0], yMin = _position[0, 1];
 
@@ -110,7 +88,7 @@ public abstract class UiElement
     /// <param name="position">placement coordinates</param>
     /// <param name="anchor">placement anchor</param>
     /// <param name="size">new size of element</param>
-    public void Place(float[] position, Anchor anchor, float[] size)
+    public override void Place(float[] position, Anchor anchor, float[] size)
     {
         position = AnchorOperations.GetTopLeft(anchor, position, size);
         
@@ -128,7 +106,7 @@ public abstract class UiElement
     /// change background color of element to chosen gradient
     /// </summary>
     /// <param name="gradient">4 colors meaning color in each angle of element</param>
-    public void Colorize(Color4[] gradient)
+    public override void Colorize(Color4[] gradient)
     {
         for (int i = 0; i < gradient.Length * 4; i++)
         {
@@ -155,7 +133,7 @@ public abstract class UiElement
     /// change background color of element to chosen
     /// </summary>
     /// <param name="color">background color</param>
-    public void Colorize(Color4 color)
+    public override void Colorize(Color4 color)
     {
         _colors[0, 0] = color.R;
         _colors[0, 1] = color.G;
