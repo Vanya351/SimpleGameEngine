@@ -4,7 +4,10 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using SimpleGameEngine.Commons;
+using SimpleGameEngine.Shaders;
+using SimpleGameEngine.Texturing;
 using SimpleGameEngine.UiElements;
+using Rectangle = SimpleGameEngine.UiElements.Geometry.Rectangle;
 
 namespace SimpleGameEngine;
 
@@ -15,7 +18,8 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
     private int _vertexBufferObject;
     private int _vertexArrayObject;
     
-    private List<float> _vertices = new List<float>();  // note every adding should contain 7 values: x, y, r, g, b, a
+    private List<float> _vertices = new List<float>();  // note every adding must contain 6 values: x, y, r, g, b, a
+                                                        // or 4: x, y, tex_x, tex_y - in case of textures
     private List<uint> _indices = new List<uint>();
     
     public static List<UiElement> UiElements = new List<UiElement>();
@@ -24,8 +28,11 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
     {
         public static readonly Shader Base = 
             new Shader("Shaders/baseShader.vert", "Shaders/baseShader.frag");
+        
+        public static readonly Shader Texture = 
+            new Shader("Shaders/texShader.vert", "Shaders/texShader.frag");
     }
-    
+
     protected override void OnLoad()
     {
         base.OnLoad();
@@ -35,7 +42,6 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         
         _vertexBufferObject = GL.GenBuffer();
-        
         GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
         
         _vertexArrayObject = GL.GenVertexArray();
@@ -43,12 +49,6 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
         
         int elementBufferObject = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, elementBufferObject);
-        
-        GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
-        GL.EnableVertexAttribArray(0);
-
-        GL.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, 6 * sizeof(float), 2 * sizeof(float));
-        GL.EnableVertexAttribArray(1);
     }
     
     protected override void OnUpdateFrame(FrameEventArgs args)
@@ -70,41 +70,101 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
     {
         base.OnRenderFrame(e);
         
-        _vertices.Clear(); _indices.Clear();
-        uint baseIndex;
-        foreach (var element in UiElements)
-        {
-            baseIndex = (uint)_vertices.Count / 6;
-            
-            for (byte i = 0; i < 4; i++)
-            {
-                if (element.BackgroundType == Background.Color)
-                {
-                    _vertices.AddRange([element.Position[i, 0], element.Position[i, 1],
-                        element.Colors[0, 0], element.Colors[0, 1], element.Colors[0, 2], element.Colors[0, 3]]);
-                }
-                else if (element.BackgroundType == Background.Gradient)
-                {
-                    _vertices.AddRange([element.Position[i, 0], element.Position[i, 1],
-                        element.Colors[i, 0], element.Colors[i, 1], element.Colors[i, 2], element.Colors[i, 3]]);
-                }
-            }
-            
-            _indices.AddRange([baseIndex, baseIndex + 1, baseIndex + 3, 
-                baseIndex + 1, baseIndex + 2, baseIndex + 3]);
-        }
-
         GL.Clear(ClearBufferMask.ColorBufferBit);
         
-        Shaders.Base.Use();
-        
-        GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Count * sizeof(float), _vertices.ToArray(), 
-            BufferUsageHint.DynamicDraw);
-        GL.BindVertexArray(_vertexArrayObject);
-        GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Count * sizeof(uint), _indices.ToArray(),
-            BufferUsageHint.DynamicDraw);
+        if (UiElements.Count != 0)
+        {
+            bool wasTexture = false;
 
-        GL.DrawElements(PrimitiveType.Triangles, _indices.Count, DrawElementsType.UnsignedInt, 0);
+            void DrawFilled()
+            {
+                Shaders.Base.Use();
+
+                GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
+                GL.EnableVertexAttribArray(0);
+
+                GL.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, 6 * sizeof(float), 2 * sizeof(float));
+                GL.EnableVertexAttribArray(1);
+
+                GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Count * sizeof(float), _vertices.ToArray(), BufferUsageHint.DynamicDraw);
+                GL.BindVertexArray(_vertexArrayObject);
+                GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Count * sizeof(uint), _indices.ToArray(), BufferUsageHint.DynamicDraw);
+
+                GL.DrawElements(PrimitiveType.Triangles, _indices.Count, DrawElementsType.UnsignedInt, 0);
+            }
+
+            foreach (var element in UiElements)
+            {
+                if (element.BackgroundType == Background.Texture || wasTexture)
+                {
+                    if (!wasTexture)
+                    {
+                        DrawFilled();
+
+                        Shaders.Texture.Use();
+
+                        GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float), 0);
+                        GL.EnableVertexAttribArray(0);
+
+                        GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 4 * sizeof(float),
+                            2 * sizeof(float));
+                        GL.EnableVertexAttribArray(1);
+                    }
+                    
+                    _vertices.Clear(); _indices.Clear();
+                }
+                
+                uint baseIndex = (uint)(element.BackgroundType == Background.Texture ? 0 : _vertices.Count / 6);
+
+                for (byte i = 0; i < element.Position.GetLength(0); i++)
+                {
+                    switch (element.BackgroundType)
+                    {
+                        case Background.Color:
+                            _vertices.AddRange([
+                                element.Position[i, 0], element.Position[i, 1],
+                                element.Colors[0, 0], element.Colors[0, 1], element.Colors[0, 2], element.Colors[0, 3]
+                            ]);
+                            break;
+                        case Background.Gradient:
+                            _vertices.AddRange([
+                                element.Position[i, 0], element.Position[i, 1],
+                                element.Colors[i, 0], element.Colors[i, 1], element.Colors[i, 2], element.Colors[i, 3]
+                            ]);
+                            break;
+                        case Background.Texture:
+                            _vertices.AddRange([
+                                element.Position[i, 0], element.Position[i, 1], 
+                                element.TextureIndices[i, 0], element.TextureIndices[i, 1]
+                            ]);
+                            break;
+                    }
+                }
+
+                foreach (uint index in element.Indices)
+                {
+                    _indices.Add(index + baseIndex);
+                }
+
+                if (element.BackgroundType == Background.Texture)
+                {
+                    element.Texture.Use(TextureUnit.Texture0);
+                    
+                    GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Count * sizeof(float), _vertices.ToArray(),
+                        BufferUsageHint.DynamicDraw);
+                    GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Count * sizeof(uint), _indices.ToArray(),
+                        BufferUsageHint.DynamicDraw);
+                    GL.BindVertexArray(_vertexArrayObject);
+                    
+                    GL.DrawElements(PrimitiveType.Triangles, _indices.Count, DrawElementsType.UnsignedInt, 0);
+                }
+                
+                wasTexture = (element.BackgroundType == Background.Texture);
+            }
+
+            if (!wasTexture)
+                DrawFilled();
+        }
 
         SwapBuffers();
     }
@@ -123,5 +183,6 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
         base.OnUnload();
         
         Shaders.Base.Dispose();
+        Shaders.Texture.Dispose();
     }
 }

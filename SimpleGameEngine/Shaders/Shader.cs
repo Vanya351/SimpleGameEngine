@@ -1,6 +1,6 @@
 ﻿using OpenTK.Graphics.OpenGL4;
 
-namespace SimpleGameEngine;
+namespace SimpleGameEngine.Shaders;
 
 public class Shader : IDisposable
 {

@@ -1,23 +1,30 @@
 ﻿using OpenTK.Mathematics;
+using SimpleGameEngine.Texturing;
 
 namespace SimpleGameEngine.Commons;
 
 public abstract class GameObjectPrototype
 {
     protected float[,] _position = new float[4, 2];
-    public float[,] Position => _position;
+    internal float[,] Position => _position;
     
     protected float[,] _colors = new float[4, 4];
-    public float[,] Colors => _colors;
+    internal float[,] Colors => _colors;
+    
+    protected Texture _texture = null!;
+    internal Texture Texture => _texture;
 
     protected Background _backgroundType;
-    public Background BackgroundType => _backgroundType;
+    internal Background BackgroundType => _backgroundType;
     
     protected bool _visible;
     public abstract bool Visible { get; set; }
     
     protected float _zIndex;
     public abstract float ZIndex { get; set; }
+
+    internal abstract uint[] Indices { get; }
+    internal abstract float[,] TextureIndices { get; }
     
     
     public GameObjectPrototype(float[] position, Anchor anchor, float[] size, Color4 backgroundColor, 
@@ -40,6 +47,15 @@ public abstract class GameObjectPrototype
         ZIndex = zIndex;
     }
     
+    public GameObjectPrototype(float[] position, Anchor anchor, float[] size, Texture texture, 
+        bool visible = true, float zIndex = 0)
+    {
+        Place(position, anchor, size);
+        Colorize(texture);
+        
+        Visible = visible;
+        ZIndex = zIndex;
+    }
     
     public abstract void Place(float[] position, Anchor anchor);
 
@@ -49,4 +65,6 @@ public abstract class GameObjectPrototype
     public abstract void Colorize(Color4[] gradient);
 
     public abstract void Colorize(Color4 color);
+    
+    public abstract void Colorize(Texture texture);
 }

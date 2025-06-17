@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using OpenTK.Mathematics;
 using SimpleGameEngine.Commons;
+using SimpleGameEngine.Texturing;
 
 namespace SimpleGameEngine.UiElements;
 
@@ -48,7 +49,6 @@ public abstract class UiElement : GameObjectPrototype
     /// <param name="zIndex">element height index</param>
     public UiElement(float[] position, Anchor anchor, float[] size, Color4 backgroundColor, bool visible = true, float zIndex = 0)
         : base(position, anchor, size, backgroundColor, visible) { }
-
     
     /// <summary>
     /// Creates an ui element with gradient background
@@ -61,6 +61,18 @@ public abstract class UiElement : GameObjectPrototype
     /// <param name="zIndex">element height index</param>
     public UiElement(float[] position, Anchor anchor, float[] size, Color4[] gradient, bool visible = true, float zIndex = 0)
         : base(position, anchor, size, gradient, visible) { }
+    
+    /// <summary>
+    /// Creates an ui element with texture background
+    /// </summary>
+    /// <param name="position">placement coordinates</param>
+    /// <param name="anchor">placement mode</param>
+    /// <param name="size">size of element</param>
+    /// <param name="texture">texture</param>
+    /// <param name="visible">visibility of element</param>
+    /// <param name="zIndex">element height index</param>
+    public UiElement(float[] position, Anchor anchor, float[] size, Texture texture, bool visible = true, float zIndex = 0)
+        : base(position, anchor, size, texture, visible) { }
     
     /// <summary>
     /// places element in new position
@@ -140,5 +152,15 @@ public abstract class UiElement : GameObjectPrototype
         _colors[0, 2] = color.B;
         _colors[0, 3] = color.A;
         _backgroundType = Background.Color;
+    }
+    
+    /// <summary>
+    /// change background of element to chosen texture
+    /// </summary>
+    /// <param name="texture">texture</param>
+    public override void Colorize(Texture texture)
+    {
+        _texture = texture;
+        _backgroundType = Background.Texture;
     }
 }
