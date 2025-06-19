@@ -77,6 +77,8 @@ public abstract class UiElement : GameObjectPrototype
         float rotationDegrees, bool visible = true, float zIndex = 0)
         : base(texture, rotationDegrees, visible, zIndex) { }
     
+    protected UiElement() : base() { }
+    
     
     /// <summary>
     /// change background of element to chosen texture

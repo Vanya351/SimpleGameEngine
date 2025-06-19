@@ -5,11 +5,11 @@ namespace SimpleGameEngine.Commons;
 
 public abstract class GameObjectPrototype
 {
-    protected float[,] _position = null!;
-    internal float[,] Position => _position;
+    protected Vector2[] _position = null!;
+    internal Vector2[] Position => _position;
     
-    protected float[,] _colors = null!;
-    internal float[,] Colors => _colors;
+    protected Color4[] _colors = null!;
+    internal Color4[] Colors => _colors;
     
     protected Texture _texture = null!;
     internal Texture Texture => _texture;
@@ -26,7 +26,7 @@ public abstract class GameObjectPrototype
     public abstract float ZIndex { get; set; }
 
     internal abstract uint[] Indices { get; }
-    internal abstract float[,] TextureIndices { get; }
+    internal abstract Vector2[] TextureIndices { get; }
 
     protected abstract void InitializeArrays();
     
@@ -72,10 +72,17 @@ public abstract class GameObjectPrototype
         
         this.SetRotation(rotationDegrees);
     }
+
+    protected GameObjectPrototype()
+    {
+        InitializeArrays();
+        
+        Visible = false;
+    }
     
-    public abstract void Place(float[] position, Anchor anchor = Anchor.TopLeft);
+    public abstract void Place(Vector2 position, Anchor anchor = Anchor.TopLeft);
     
-    public abstract void Place(float[] position, Anchor anchor, float rotationDegrees);
+    public abstract void Place(Vector2 position, Anchor anchor, float rotationDegrees);
 
     public abstract void Colorize(Color4[] gradient);
 
@@ -93,5 +100,9 @@ public abstract class GameObjectPrototype
         Rotation = MathHelper.DegreesToRadians(degrees);
     }
     
-    public abstract void Rescale(float size, Anchor anchor = Anchor.Center);
+    public abstract void Rescale(float scale, Anchor anchor = Anchor.Center);
+    
+    public abstract void Rescale(float xScale = 1, float yScale = 1, Anchor anchor = Anchor.Center);
+    
+    public abstract void Move(float x = 0, float y = 0);
 }

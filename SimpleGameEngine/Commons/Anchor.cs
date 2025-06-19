@@ -1,4 +1,6 @@
-﻿namespace SimpleGameEngine.Commons;
+﻿using OpenTK.Mathematics;
+
+namespace SimpleGameEngine.Commons;
 
 public enum Anchor
 {
@@ -15,78 +17,114 @@ public enum Anchor
 
 public static class AnchorOperations
 {
-    public static float[] GetCenter(Anchor anchor, float[] coordinates, float[] size) {
-        float[] newCoords = new float[2];
-        Array.Copy(coordinates, newCoords, 2);
+    public static Vector2 GetCenter(Anchor anchor, Vector2 coordinates, Vector2 size) {
+        Vector2 newCoords = coordinates;
 
         switch (anchor)
         {
             case Anchor.Left:
-                newCoords[0] += size[0] / 2;
+                newCoords.X += size.X / 2;
                 break;
             case Anchor.Right:
-                newCoords[0] -= size[0] / 2;
+                newCoords.X -= size.X / 2;
                 break;
             case Anchor.Top:
-                newCoords[1] -= size[1] / 2;
+                newCoords.Y -= size.Y / 2;
                 break;
             case Anchor.Bottom:
-                newCoords[1] += size[1] / 2;
+                newCoords.Y += size.Y / 2;
                 break;
             case Anchor.TopLeft:
-                newCoords[0] += size[0] / 2;
-                newCoords[1] -= size[1] / 2;
+                newCoords.X += size.X / 2;
+                newCoords.Y -= size.Y / 2;
                 break;
             case Anchor.TopRight:
-                newCoords[0] -= size[0] / 2;
-                newCoords[1] -= size[1] / 2;
+                newCoords.X -= size.X / 2;
+                newCoords.Y -= size.Y / 2;
                 break;
             case Anchor.BottomLeft:
-                newCoords[0] += size[0] / 2;
-                newCoords[1] += size[1] / 2;
+                newCoords.X += size.X / 2;
+                newCoords.Y += size.Y / 2;
                 break;
             case Anchor.BottomRight:
-                newCoords[0] -= size[0] / 2;
-                newCoords[1] += size[1] / 2;
+                newCoords.X -= size.X / 2;
+                newCoords.Y += size.Y / 2;
                 break;
         }
         
         return newCoords;
     }
     
-    public static float[] GetTopLeft(Anchor anchor, float[] coordinates, float[] size) {
-        float[] newCoords = new float[2];
-        Array.Copy(coordinates, newCoords, 2);
+    public static Vector2 GetTopLeft(Anchor anchor, Vector2 coordinates, Vector2 size) {
+        Vector2 newCoords = coordinates;
 
         switch (anchor)
         {
             case Anchor.Left:
-                newCoords[1] += size[1] / 2;
+                newCoords.Y += size.Y / 2;
                 break;
             case Anchor.Right:
-                newCoords[1] += size[1] / 2;
-                newCoords[0] -= size[0];
+                newCoords.Y += size.Y / 2;
+                newCoords.X -= size.X;
                 break;
             case Anchor.Top:
-                newCoords[0] -= size[0] / 2;
+                newCoords.X -= size.X / 2;
                 break;
             case Anchor.Bottom:
-                newCoords[0] -= size[0] / 2;
-                newCoords[1] += size[1];
+                newCoords.X -= size.X / 2;
+                newCoords.Y += size.Y;
                 break;
             case Anchor.Center:
-                newCoords[0] += size[0] / 2;
-                newCoords[1] -= size[1] / 2;
+                newCoords.X -= size.X / 2;
+                newCoords.Y += size.Y / 2;
                 break;
             case Anchor.TopRight:
-                newCoords[0] -= size[0];
+                newCoords.X -= size.X;
                 break;
             case Anchor.BottomLeft:
-                newCoords[1] += size[1];
+                newCoords.Y += size.Y;
                 break;
             case Anchor.BottomRight:
-                newCoords[0] -= size[0];
-                newCoords[1] += size[1];
+                newCoords.X -= size.X;
+                newCoords.Y += size.Y;
+                break;
+        }
+        
+        return newCoords;
+    }
+    
+    public static Vector2 GetFromCenter(Anchor anchor, Vector2 coordinates, Vector2 size) {
+        Vector2 newCoords = coordinates;
+
+        switch (anchor)
+        {
+            case Anchor.Left:
+                newCoords.X -= size.X / 2;
+                break;
+            case Anchor.Right:
+                newCoords.X += size.X / 2;
+                break;
+            case Anchor.Top:
+                newCoords.Y += size.Y / 2;
+                break;
+            case Anchor.Bottom:
+                newCoords.Y -= size.Y / 2;
+                break;
+            case Anchor.TopLeft:
+                newCoords.X -= size.X / 2;
+                newCoords.Y += size.Y / 2;
+                break;
+            case Anchor.TopRight:
+                newCoords.X += size.X / 2;
+                newCoords.Y += size.Y / 2;
+                break;
+            case Anchor.BottomLeft:
+                newCoords.X -= size.X / 2;
+                newCoords.Y -= size.Y / 2;
+                break;
+            case Anchor.BottomRight:
+                newCoords.X += size.X / 2;
+                newCoords.Y -= size.Y / 2;
                 break;
         }
         

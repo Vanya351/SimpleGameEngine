@@ -50,14 +50,14 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
         int elementBufferObject = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, elementBufferObject);
         
-        // test data below
-        Texture tex = new Texture("tex.png");
-        Rectangle rectangle = new Rectangle([-0.5f, 0.5f], Anchor.TopLeft, [0.5f, 0.5f], tex, 10);
-        Rectangle rectangle2 = new Rectangle([-0.4f, 0.4f], Anchor.TopLeft, [1f, 0.5f], new Color4(255, 0, 0, 128));
-        Rectangle rectangle3 = new Rectangle([-0.2f, 0.2f], Anchor.TopLeft, [0.5f, 0.5f], Color4.Green, 45f);
-        Rectangle rectangle4 = new Rectangle([0.4f, 0.2f], Anchor.TopLeft, [0.5f, 0.5f], Color4.Blue, 120f);
-        rectangle2.ZIndex = 1;
+        // test data below TODO: remove from final version
+        Texture texture = new Texture("tex.png");
+        Rectangle rectangle1 = new Rectangle(new Vector2(-0.2f, 0.2f), Anchor.TopLeft, new Vector2(0.5f, 0.5f), Color4.Green);
+        Rectangle rectangle2 = new Rectangle(new Vector2(0.4f, 0.2f), Anchor.TopLeft, new Vector2(0.5f, 0.5f), Color4.Orange);
+        Rectangle rectangle3 = new Rectangle(new Vector2(0.4f, 0.2f), Anchor.TopLeft, new Vector2(0.5f, 0.5f), texture);
+        rectangle3.Rescale(0.5f, 0.8f, Anchor.Left);
         //EngineSettings.ShowFps = true;
+        //TODO: there is a strange bug where colored rectangles not shown where last render with texture
     }
     
     protected override void OnUpdateFrame(FrameEventArgs args)
@@ -141,8 +141,8 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
                     {
                         case Background.Color:
                             _vertices.AddRange([
-                                element.Position[i, 0], element.Position[i, 1],
-                                element.Colors[0, 0], element.Colors[0, 1], element.Colors[0, 2], element.Colors[0, 3],
+                                element.Position[i].X, element.Position[i].Y,
+                                element.Colors[0].R, element.Colors[0].G, element.Colors[0].B, element.Colors[0].A,
                                 trans.M11, trans.M12, trans.M13, trans.M14,
                                 trans.M21, trans.M22, trans.M23, trans.M24,
                                 trans.M31, trans.M32, trans.M33, trans.M34,
@@ -151,8 +151,8 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
                             break;
                         case Background.Gradient:
                             _vertices.AddRange([
-                                element.Position[i, 0], element.Position[i, 1],
-                                element.Colors[i, 0], element.Colors[i, 1], element.Colors[i, 2], element.Colors[i, 3],
+                                element.Position[i].X, element.Position[i].Y,
+                                element.Colors[i].R, element.Colors[i].G, element.Colors[i].B, element.Colors[i].A,
                                 trans.M11, trans.M12, trans.M13, trans.M14,
                                 trans.M21, trans.M22, trans.M23, trans.M24,
                                 trans.M31, trans.M32, trans.M33, trans.M34,
@@ -161,8 +161,8 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
                             break;
                         case Background.Texture:
                             _vertices.AddRange([
-                                element.Position[i, 0], element.Position[i, 1], 
-                                element.TextureIndices[i, 0], element.TextureIndices[i, 1]
+                                element.Position[i].X, element.Position[i].Y, 
+                                element.TextureIndices[i].X, element.TextureIndices[i].Y
                             ]);
                             break;
                     }
