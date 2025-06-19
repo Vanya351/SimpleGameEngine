@@ -49,6 +49,15 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
         
         int elementBufferObject = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, elementBufferObject);
+        
+        // test data below
+        Texture tex = new Texture("tex.png");
+        Rectangle rectangle = new Rectangle([-0.5f, 0.5f], Anchor.TopLeft, [0.5f, 0.5f], tex, 10);
+        Rectangle rectangle2 = new Rectangle([-0.4f, 0.4f], Anchor.TopLeft, [1f, 0.5f], new Color4(255, 0, 0, 128));
+        Rectangle rectangle3 = new Rectangle([-0.2f, 0.2f], Anchor.TopLeft, [0.5f, 0.5f], Color4.Green, 45f);
+        Rectangle rectangle4 = new Rectangle([0.4f, 0.2f], Anchor.TopLeft, [0.5f, 0.5f], Color4.Blue, 120f);
+        rectangle2.ZIndex = 1;
+        //EngineSettings.ShowFps = true;
     }
     
     protected override void OnUpdateFrame(FrameEventArgs args)

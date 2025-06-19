@@ -5,10 +5,10 @@ namespace SimpleGameEngine.Commons;
 
 public abstract class GameObjectPrototype
 {
-    protected float[,] _position = new float[4, 2];
+    protected float[,] _position = null!;
     internal float[,] Position => _position;
     
-    protected float[,] _colors = new float[4, 4];
+    protected float[,] _colors = null!;
     internal float[,] Colors => _colors;
     
     protected Texture _texture = null!;
@@ -27,12 +27,20 @@ public abstract class GameObjectPrototype
 
     internal abstract uint[] Indices { get; }
     internal abstract float[,] TextureIndices { get; }
+
+    protected abstract void InitializeArrays();
+    
+    /*
+     * Note:
+     * Ignore warning "virtual member call in constructor"
+     * it's mentioned, that most derived version of method must be called
+     */
     
     
-    public GameObjectPrototype(float[] position, Anchor anchor, float[] size, Color4 backgroundColor, 
+    protected GameObjectPrototype(Color4 backgroundColor, 
         float rotationDegrees = 0, bool visible = true, float zIndex = 0)
     {
-        Place(position, anchor, size);
+        InitializeArrays();
         Colorize(backgroundColor);
         
         Visible = visible;
@@ -41,10 +49,10 @@ public abstract class GameObjectPrototype
         this.SetRotation(rotationDegrees);
     }
     
-    public GameObjectPrototype(float[] position, Anchor anchor, float[] size, Color4[] gradient, 
+    protected GameObjectPrototype(Color4[] gradient, 
         float rotationDegrees = 0, bool visible = true, float zIndex = 0)
     {
-        Place(position, anchor, size);
+        InitializeArrays();
         Colorize(gradient);
         
         Visible = visible;
@@ -53,10 +61,10 @@ public abstract class GameObjectPrototype
         this.SetRotation(rotationDegrees);
     }
     
-    public GameObjectPrototype(float[] position, Anchor anchor, float[] size, Texture texture, 
+    protected GameObjectPrototype(Texture texture, 
         float rotationDegrees = 0, bool visible = true, float zIndex = 0)
     {
-        Place(position, anchor, size);
+        InitializeArrays();
         Colorize(texture);
         
         Visible = visible;
@@ -65,13 +73,9 @@ public abstract class GameObjectPrototype
         this.SetRotation(rotationDegrees);
     }
     
-    public abstract void Place(float[] position, Anchor anchor);
+    public abstract void Place(float[] position, Anchor anchor = Anchor.TopLeft);
     
     public abstract void Place(float[] position, Anchor anchor, float rotationDegrees);
-
-    public abstract void Place(float[] position, Anchor anchor, float[] size);
-    
-    public abstract void Place(float[] position, Anchor anchor, float[] size, float rotationDegrees);
 
     public abstract void Colorize(Color4[] gradient);
 
