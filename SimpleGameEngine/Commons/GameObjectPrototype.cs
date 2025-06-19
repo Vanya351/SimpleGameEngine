@@ -14,6 +14,8 @@ public abstract class GameObjectPrototype
     protected Texture _texture = null!;
     internal Texture Texture => _texture;
 
+    public float Rotation = 0;
+
     protected Background _backgroundType;
     internal Background BackgroundType => _backgroundType;
     
@@ -28,43 +30,64 @@ public abstract class GameObjectPrototype
     
     
     public GameObjectPrototype(float[] position, Anchor anchor, float[] size, Color4 backgroundColor, 
-        bool visible = true, float zIndex = 0)
+        float rotationDegrees = 0, bool visible = true, float zIndex = 0)
     {
         Place(position, anchor, size);
         Colorize(backgroundColor);
         
         Visible = visible;
         ZIndex = zIndex;
+        
+        this.SetRotation(rotationDegrees);
     }
     
     public GameObjectPrototype(float[] position, Anchor anchor, float[] size, Color4[] gradient, 
-        bool visible = true, float zIndex = 0)
+        float rotationDegrees = 0, bool visible = true, float zIndex = 0)
     {
         Place(position, anchor, size);
         Colorize(gradient);
         
         Visible = visible;
         ZIndex = zIndex;
+        
+        this.SetRotation(rotationDegrees);
     }
     
     public GameObjectPrototype(float[] position, Anchor anchor, float[] size, Texture texture, 
-        bool visible = true, float zIndex = 0)
+        float rotationDegrees = 0, bool visible = true, float zIndex = 0)
     {
         Place(position, anchor, size);
         Colorize(texture);
         
         Visible = visible;
         ZIndex = zIndex;
+        
+        this.SetRotation(rotationDegrees);
     }
     
     public abstract void Place(float[] position, Anchor anchor);
+    
+    public abstract void Place(float[] position, Anchor anchor, float rotationDegrees);
 
     public abstract void Place(float[] position, Anchor anchor, float[] size);
-
+    
+    public abstract void Place(float[] position, Anchor anchor, float[] size, float rotationDegrees);
 
     public abstract void Colorize(Color4[] gradient);
 
     public abstract void Colorize(Color4 color);
     
     public abstract void Colorize(Texture texture);
+
+    public void Rotate(float degrees)
+    {
+        Rotation += MathHelper.DegreesToRadians(degrees);
+    }
+
+    public void SetRotation(float degrees)
+    {
+        Rotation = MathHelper.DegreesToRadians(degrees);
+    }
+    
+    public abstract void Rescale(float size, Anchor anchor = Anchor.Center);
 }

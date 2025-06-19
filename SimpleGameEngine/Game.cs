@@ -80,14 +80,23 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
             {
                 Shaders.Base.Use();
 
-                GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
+                GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 22 * sizeof(float), 0);
                 GL.EnableVertexAttribArray(0);
 
-                GL.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, 6 * sizeof(float), 2 * sizeof(float));
+                GL.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, 22 * sizeof(float), 2 * sizeof(float));
                 GL.EnableVertexAttribArray(1);
+                
+                GL.VertexAttribPointer(2, 4, VertexAttribPointerType.Float, false, 22 * sizeof(float), 6 * sizeof(float));
+                GL.EnableVertexAttribArray(2);
+                GL.VertexAttribPointer(3, 4, VertexAttribPointerType.Float, false, 22 * sizeof(float), 10 * sizeof(float));
+                GL.EnableVertexAttribArray(3);
+                GL.VertexAttribPointer(4, 4, VertexAttribPointerType.Float, false, 22 * sizeof(float), 14 * sizeof(float));
+                GL.EnableVertexAttribArray(4);
+                GL.VertexAttribPointer(5, 4, VertexAttribPointerType.Float, false, 22 * sizeof(float), 18 * sizeof(float));
+                GL.EnableVertexAttribArray(5);
 
-                GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Count * sizeof(float), _vertices.ToArray(), BufferUsageHint.DynamicDraw);
                 GL.BindVertexArray(_vertexArrayObject);
+                GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Count * sizeof(float), _vertices.ToArray(), BufferUsageHint.DynamicDraw);
                 GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Count * sizeof(uint), _indices.ToArray(), BufferUsageHint.DynamicDraw);
 
                 GL.DrawElements(PrimitiveType.Triangles, _indices.Count, DrawElementsType.UnsignedInt, 0);
@@ -114,7 +123,8 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
                     _vertices.Clear(); _indices.Clear();
                 }
                 
-                uint baseIndex = (uint)(element.BackgroundType == Background.Texture ? 0 : _vertices.Count / 6);
+                uint baseIndex = (uint)(element.BackgroundType == Background.Texture ? 0 : _vertices.Count / 22);
+                Matrix4 trans = Matrix4.CreateRotationZ(element.Rotation).Transposed();
 
                 for (byte i = 0; i < element.Position.GetLength(0); i++)
                 {
@@ -123,13 +133,21 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
                         case Background.Color:
                             _vertices.AddRange([
                                 element.Position[i, 0], element.Position[i, 1],
-                                element.Colors[0, 0], element.Colors[0, 1], element.Colors[0, 2], element.Colors[0, 3]
+                                element.Colors[0, 0], element.Colors[0, 1], element.Colors[0, 2], element.Colors[0, 3],
+                                trans.M11, trans.M12, trans.M13, trans.M14,
+                                trans.M21, trans.M22, trans.M23, trans.M24,
+                                trans.M31, trans.M32, trans.M33, trans.M34,
+                                trans.M41, trans.M42, trans.M43, trans.M44
                             ]);
                             break;
                         case Background.Gradient:
                             _vertices.AddRange([
                                 element.Position[i, 0], element.Position[i, 1],
-                                element.Colors[i, 0], element.Colors[i, 1], element.Colors[i, 2], element.Colors[i, 3]
+                                element.Colors[i, 0], element.Colors[i, 1], element.Colors[i, 2], element.Colors[i, 3],
+                                trans.M11, trans.M12, trans.M13, trans.M14,
+                                trans.M21, trans.M22, trans.M23, trans.M24,
+                                trans.M31, trans.M32, trans.M33, trans.M34,
+                                trans.M41, trans.M42, trans.M43, trans.M44
                             ]);
                             break;
                         case Background.Texture:
@@ -150,6 +168,9 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
                 {
                     element.Texture.Use(TextureUnit.Texture0);
                     
+                    int location = GL.GetUniformLocation(Shaders.Texture.Handle, "transform");
+                    GL.UniformMatrix4(location, false, ref trans);
+                    
                     GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Count * sizeof(float), _vertices.ToArray(),
                         BufferUsageHint.DynamicDraw);
                     GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Count * sizeof(uint), _indices.ToArray(),
@@ -158,6 +179,7 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
                     
                     GL.DrawElements(PrimitiveType.Triangles, _indices.Count, DrawElementsType.UnsignedInt, 0);
                 }
+
                 
                 wasTexture = (element.BackgroundType == Background.Texture);
             }
