@@ -36,7 +36,7 @@ public class Rectangle : UiElement
         Place(position, anchor, size);
     }
     
-    protected Rectangle() : base() { }
+    public Rectangle() : base() { }
     
     
     /// <summary>

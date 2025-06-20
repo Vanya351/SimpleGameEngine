@@ -18,8 +18,7 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
     private int _vertexBufferObject;
     private int _vertexArrayObject;
     
-    private List<float> _vertices = new List<float>();  // note every adding must contain 6 values: x, y, r, g, b, a
-                                                        // or 4: x, y, tex_x, tex_y - in case of textures
+    private List<float> _vertices = new List<float>();
     private List<uint> _indices = new List<uint>();
     
     public static List<UiElement> UiElements = new List<UiElement>();
@@ -57,7 +56,6 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
         Rectangle rectangle3 = new Rectangle(new Vector2(0.4f, 0.2f), Anchor.TopLeft, new Vector2(0.5f, 0.5f), texture);
         rectangle3.Rescale(0.5f, 0.8f, Anchor.Left);
         //EngineSettings.ShowFps = true;
-        //TODO: there is a strange bug where colored rectangles not shown where last render with texture
     }
     
     protected override void OnUpdateFrame(FrameEventArgs args)
@@ -80,6 +78,7 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
         base.OnRenderFrame(e);
         
         GL.Clear(ClearBufferMask.ColorBufferBit);
+        _vertices.Clear(); _indices.Clear();
         
         if (UiElements.Count != 0)
         {
@@ -167,7 +166,7 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
                             break;
                     }
                 }
-
+            
                 foreach (uint index in element.Indices)
                 {
                     _indices.Add(index + baseIndex);
@@ -185,7 +184,7 @@ public class Game(int width, int height, string title) : GameWindow(GameWindowSe
                     GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Count * sizeof(uint), _indices.ToArray(),
                         BufferUsageHint.DynamicDraw);
                     GL.BindVertexArray(_vertexArrayObject);
-                    
+
                     GL.DrawElements(PrimitiveType.Triangles, _indices.Count, DrawElementsType.UnsignedInt, 0);
                 }
 
